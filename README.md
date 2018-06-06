@@ -43,15 +43,19 @@ The packaged template file is read is deployed by cloud formation to a particula
 # Development
 
 ## Developer Setup
-`pip install virtualenv`
-`pip install virtualenvwrapper`
-`which virtualenvwrapper.sh`
-Copy that path into bash profile
-`source /some/path/here/virtualenvwrapper.sh`
-`mkvirtualenv pg-audit-lambda`
-`workon pg-audit-lambda`
-`pip install -r requirements.txt`
-`pip install -r requirements-dev.txt`
+```
+pip install virtualenv
+pip install virtualenvwrapper
+which virtualenvwrapper.sh
+```
+Copy that path into bash your profile.
+```
+source /some/path/here/virtualenvwrapper.sh
+mkvirtualenv pg-audit-lambda
+workon pg-audit-lambda
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
 
 ## Running Locally
 If you have the virtual environment configured correctly, you should be able to directly execute the audit code like so:
