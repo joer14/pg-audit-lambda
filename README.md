@@ -30,15 +30,13 @@ Running `./tools/build.sh` results in a `dist` folder being created, with the la
 
 ## Deploying
 Deploying is a 2 step process, packaging and deploying.
+To deploy run `./tools/deploy.py` with the optional argument `--profile aws_profile_name`.
 
 ### Packaging
 The `dist` folder is zipped and then it is uploaded to s3. A new `template.packaged.{timestamp}.yaml` file is created, with the `codeURI` field filled out with path to the file on s3.
 
 ### Deploying
 The packaged template file is read is deployed by cloud formation to a particular stack.
-
-## Build and Deploy
-`./build_and_deploy.sh`
 
 # Development
 
