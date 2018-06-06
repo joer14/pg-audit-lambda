@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Metrics DB Logs to Glacier
+Resources:
+  Audit:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: core.lambda_handler
+      Runtime: python2.7
+      CodeUri: .
+      Description: >-
+        metrics-audit
+      MemorySize: 512
+      Timeout: 300
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - rds:DescribeDBLogFiles
+                - rds:DownloadDBLogFilePortion
+                - rds:DownloadCompleteLogFile
+                - rds:DescribeDBInstances
+              Resource: '{{ DBInstanceArn }}'
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - glacier:UploadArchive
+              Resource: '{{ VaultInstanceArn }}'
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(24 hours)
+      Environment:
+        Variables:
+          DB_INSTANCE_IDENTIFIER: {{ DB_INSTANCE_IDENTIFIER }}
+          GLACIER_VAULT_NAME: {{ GLACIER_VAULT_NAME }}
