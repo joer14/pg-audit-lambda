@@ -2,6 +2,8 @@
 
 This repo allows one to deploy a cloud formation stack with a lambda function that will automatically backup `pg_audit` logs from an AWS `rds` instance. Every 24 hours the lambda will turn on, and download all logs that have been written to in the last 24 hours, except for the most recent log. It will then compress those files, and upload them as an archive to AWS glacier. It does not download the most recently modified log, because that log file is not complete (yet), and we don't want to download and upload duplicate data.
 
+This repo also provides a helpful utilty script for installing `pg_audit` on AWS RDS.
+
 # Getting Started
 This repo uses `python2.7`.
 
