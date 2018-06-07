@@ -96,7 +96,6 @@ def main():
     archive_name = "{0}/{1}.tar".format(DB_INSTANCE_IDENTIFIER, archive_timestamp)
 
     print 'Archive has: %s files' % len(filenames)
-    print 'Archive size: %s Kb' % str(float(len(archive)) * 0.001)
 
     if WRITE_TO_LOCAL:
         write_archive_to_local_file(archive_name, archive)
