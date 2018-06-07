@@ -17,7 +17,7 @@ Before deploying you must create the following resources:
 | Variable | Description |
 | --- | --- |
 | `DATABASE_URL` | Postgres Database URI, only used by `install_pg_audit.py` utility. |
-| `DB_IDENTIFIER` | The RDS identifier found by running `aws rds describe-db-instances` |
+| `DB_INSTANCE_IDENTIFIER` | The RDS identifier found by running `aws rds describe-db-instances` |
 | `GLACIER_VAULT_NAME` | The name of the glacier vault you created for storing the logs. |
 | `LAMBDA_BUCKET` | The name of the S3 bucket you created to be used to store the packaged lambda. |
 
