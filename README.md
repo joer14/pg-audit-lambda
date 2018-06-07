@@ -30,6 +30,8 @@ Deploying is a 3 step process, building, packaging and deploying.
 Building is accomplished by running `./tools/build.sh`.
 Packaging and deploying is accomplished by running `./tools/deploy.sh`.
 
+**Note:** If you want to deploy using a non default AWS Profile, be sure to set the `AWS_PROFILE` environment variable before building and deploying.
+
 ### 1. Building
 Running `./tools/build.sh` results in a `dist` folder being created, with the latest source code from the `audit` module copied over, and the necessary dependencies listed in `requirements.txt` installed.
 
