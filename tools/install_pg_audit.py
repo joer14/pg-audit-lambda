@@ -131,6 +131,7 @@ def set_parameter_group(group_name):
         DBInstanceIdentifier=DB_INSTANCE_IDENTIFIER,
         DBParameterGroupName=group_name,
     )
+    time.sleep(5)
     reboot_instance()
 
 def pg_group_applied_successfully(group_name):
@@ -180,7 +181,10 @@ def main():
 
     create_extension(cur)
     set_pgaudit_log_parameter(new_group_name)
-    reboot_instance()
+    if not pg_group_applied_successfully(new_group_name):
+        reboot_instance()
+        if not pg_group_applied_successfully(new_group_name):
+            raise RuntimeError('New parameter group is not set.')
     click.echo('PG Audit Session Logging Installed. Now you should verify this by manually querying the database and checking the logs.')
 
 
