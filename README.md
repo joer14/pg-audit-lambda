@@ -2,18 +2,15 @@
 
 This repo allows one to deploy a cloud formation stack with a lambda function that will automatically backup `pg_audit` logs from an AWS `rds` instance. Every 24 hours the lambda will turn on, and download all logs that have been written to in the last 24 hours, except for the most recent log. It will then compress those files, and upload them as an archive to AWS glacier. It does not download the most recently modified log, because that log file is not complete (yet), and we don't want to download and upload duplicate data.
 
-This repo also provides a helpful utilty script for installing `pg_audit` on AWS RDS.
+This repo also provides a helpful utility script for installing `pg_audit` on AWS RDS.
 
-# Getting Started
-This repo uses `python2.7`.
-
-# Resources
+## Required AWS Resources
 Before deploying you must create the following resources:
-- aws s3 bucket (for storing the packaged lambda)
-- rds instance
-- glacier vault (in the same region as the rds instance)
+- AWS Glacier Vault (in the same region as the RDS instance)
+- AWS RDS Instance (Postgres or Aurora)
+- AWS S3 Bucket (for storing the packaged lambda)
 
-# Required environment variables
+## Required environment variables
 | Variable | Description |
 | --- | --- |
 | `DATABASE_URL` | Postgres Database URI, only used by `install_pg_audit.py` utility. |
@@ -27,22 +24,28 @@ Before deploying you must create the following resources:
 ## Installing PG Audit
 - [Docs](/docs/pg_audit_setup)
 
-## Building
+## Deploying
+Deploying is a 3 step process, building, packaging and deploying.
+
+Building is accomplished by running `./tools/build.sh`.
+Packaging and deploying is accomplished by running `./tools/deploy.sh`.
+
+### 1. Building
 Running `./tools/build.sh` results in a `dist` folder being created, with the latest source code from the `audit` module copied over, and the necessary dependencies listed in `requirements.txt` installed.
 
-## Deploying
-Deploying is a 2 step process, packaging and deploying.
-To deploy run `./tools/deploy.py` with the optional argument `--profile aws_profile_name`.
+### 2. Packaging
 
-### Packaging
-The `dist` folder is zipped and then it is uploaded to s3. A new `template.packaged.{timestamp}.yaml` file is created, with the `codeURI` field filled out with path to the file on s3.
+After running `./tools/deploy.sh`, the `dist` folder is zipped and then it is uploaded to s3. A new `template.packaged.{timestamp}.yaml` file is created, with the `codeURI` field filled out with path to the file on s3.
 
-### Deploying
-The packaged template file is read is deployed by cloud formation to a particular stack.
+### 3. Deploying
+The packaged template file is read and deployed by AWS Cloud Formation to a particular stack.
 
 # Development
 
 ## Developer Setup
+
+This repo uses `python2.7`.
+
 ```
 pip install virtualenv
 pip install virtualenvwrapper
