@@ -73,4 +73,3 @@ Alternatively, if you want to test the lambda handler itself using a AWS's pytho
 ## Limitations
 - Database logs for a 24 hour period cannot exceed 4GB or the upload will fail.
 - Due to a [bug](https://github.com/aws/aws-sdk-net/issues/921#issuecomment-381540115) present in the aws CLI, and many AWS SDKs, we have to download the log file using the AWS REST interface directly.
-- Files are being saved to memory right now - we should probably be writing to disk instead.

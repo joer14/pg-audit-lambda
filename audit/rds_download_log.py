@@ -23,7 +23,7 @@ def get_credentials():
     session = boto3.Session()
     return session.get_credentials()
 
-def get_log_file_via_rest(filename):
+def get_log_file_contents_via_rest(filename):
     def sign(key, msg):
         return hmac.new(key, msg.encode('utf-8'), hashlib.sha256).digest()
 
@@ -130,7 +130,7 @@ def get_log_file_via_rest(filename):
 
 def main():
     filename = 'error/postgresql.log.2018-05-16-22'
-    get_log_file_via_rest(filename)
+    get_log_file_contents_via_rest(filename)
 
 
 if __name__ == "__main__":

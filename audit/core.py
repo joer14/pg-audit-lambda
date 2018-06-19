@@ -7,16 +7,22 @@ It will look for all log files for a given RDS instance, that have been updated 
 import arrow
 import boto3
 import os
+import shutil
 import StringIO
 import tarfile
+import tempfile
 
-from rds_download_log import get_log_file_via_rest
+from rds_download_log import get_log_file_contents_via_rest
 
 DB_INSTANCE_IDENTIFIER = os.getenv('DB_INSTANCE_IDENTIFIER')
 GLACIER_VAULT_NAME = os.getenv('GLACIER_VAULT_NAME')
 
-FAKE_DOWNLOAD = False
-WRITE_TO_LOCAL = False
+PERSIST_TO_DISC_AFTER = False
+
+TEMP_DIR = tempfile.mktemp()
+
+def get_parent_path(path):
+    return os.path.abspath(os.path.join(path, os.pardir))
 
 def list_files(rds_client):
     # files last modified before this time will not be listed.
@@ -39,24 +45,25 @@ def list_files(rds_client):
 
 def download(rds_client, filename):
     '''downloads file and loads it into memory'''
-    if FAKE_DOWNLOAD:
-        return filename + 'some fake content here \n'* 10
+    tmp_file = open(filename, 'w+')
+    contents = get_log_file_contents_via_rest(filename)
+    tmp_file.write(contents)
+    return tmp_file
 
-    return get_log_file_via_rest(filename)
-
-def make_tar(files):
+def make_tar(files, archive_name):
     """ given a list of (filename, filecontents), return a tar) """
-    output_buffer = StringIO.StringIO()
-    tar = tarfile.open(fileobj=output_buffer, mode="w:gz")
-    for filename, file_contents in files:
-        file = StringIO.StringIO()
-        file.write(file_contents)
+    delete_after = not PERSIST_TO_DISC_AFTER
+    tmp_file = open(archive_name, 'w+')
+    tar = tarfile.open(fileobj=tmp_file, mode="w:gz")
+    for filename, file in files:
         file.seek(0)
-        info = tar.tarinfo(name=filename)
-        info.size=len(file.buf)
+        info = tar.gettarinfo(fileobj=file, arcname=os.path.basename(filename))
         tar.addfile(tarinfo=info, fileobj=file)
     tar.close()
-    return output_buffer
+
+    if PERSIST_TO_DISC_AFTER:
+        print tmp_file.name
+    return tmp_file
 
 def upload(filepath, archive_file):
     glacier_client = boto3.client('glacier')
@@ -70,12 +77,11 @@ def upload(filepath, archive_file):
     if 'archiveId' not in response:
         raise Exception('failed to upload filepath: %s' % filepath)
 
-
-def write_archive_to_local_file(filename, archive):
-    """ Useful when debugging """
-    target_file = open(filename, 'w')
-    target_file.write(archive)
-    target_file.close()
+def make_dirs_for_path(path):
+    parent = get_parent_path(path)
+    if not os.path.exists(parent):
+        os.makedirs(parent)
+        make_dirs_for_path(parent)
     return
 
 def main():
@@ -88,19 +94,24 @@ def main():
     files = []
 
     for filename in filenames:
-        file_contents = download(rds_client, filename)
-        files.append((filename, file_contents))
+        filename = TEMP_DIR + '/' + filename
+        make_dirs_for_path(filename)
+        file = download(rds_client, filename)
+        files.append((filename, file))
 
-    archive = make_tar(files)
     archive_timestamp = arrow.utcnow().format('YYYY-MM-DD__HH-mm-ss__UTC')
-    archive_name = "{0}/{1}.tar".format(DB_INSTANCE_IDENTIFIER, archive_timestamp)
+    archive_base_name = "{0}-{1}.tar".format(DB_INSTANCE_IDENTIFIER, archive_timestamp)
+    archive_name = os.path.join(TEMP_DIR, archive_base_name)
+    make_dirs_for_path(archive_name)
+    archive = make_tar(files, archive_name)
 
+    print 'Archive Created'
     print 'Archive has: %s files' % len(filenames)
 
-    if WRITE_TO_LOCAL:
-        write_archive_to_local_file(archive_name, archive)
     upload(archive_name, archive)
     print 'Successfully uploaded archive: %s' % archive_name
+    print 'Deleting temporary directory'
+    shutil.rmtree(TEMP_DIR)
 
 
 def lambda_handler(event, context):
